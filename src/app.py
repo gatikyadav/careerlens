@@ -7,6 +7,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.modules.matcher import match_jobs
 from src.indexing.vector_store import build_index, get_collection
+from src.modules.gap_analysis import run_gap_analysis
+
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -195,3 +197,76 @@ else:
                             unsafe_allow_html=True
                         )
                     st.markdown("---")
+                    # ── Gap Analysis ──
+        st.markdown('<p class="section-title">📊 Skill Gap Analysis</p>',
+                    unsafe_allow_html=True)
+
+        with st.spinner("Analyzing skill gaps across job postings..."):
+            matched_ids = [m["id"] for m in matches]
+            gap_result = run_gap_analysis(
+                resume_skills=profile["skills"],
+                job_ids=matched_ids if matched_ids else None,
+                top_n=15,
+            )
+
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Coverage Score", f"{gap_result['coverage_pct']}%",
+                     help="% of top demanded skills you already have")
+        with col2:
+            st.metric("Postings Analyzed", gap_result["total_postings_analyzed"])
+        with col3:
+            st.metric("Skill Gaps Found", len(gap_result["gaps"]))
+
+        st.markdown("#### 🔴 Skills You're Missing")
+        if gap_result["gaps"]:
+            import plotly.express as px
+            import pandas as pd
+
+            gap_df = pd.DataFrame(gap_result["gaps"][:10])
+            fig = px.bar(
+                gap_df,
+                x="frequency_pct",
+                y="skill",
+                orientation="h",
+                labels={"frequency_pct": "% of job postings", "skill": ""},
+                color="frequency_pct",
+                color_continuous_scale=["#FEF3C7", "#DC2626"],
+            )
+            fig.update_layout(
+                height=350,
+                margin=dict(l=0, r=0, t=10, b=10),
+                showlegend=False,
+                coloraxis_showscale=False,
+                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="rgba(0,0,0,0)",
+            )
+            fig.update_xaxes(showgrid=True, gridcolor="#E2E8F0")
+            fig.update_yaxes(showgrid=False)
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.success("No major skill gaps detected!")
+
+        st.markdown("#### 🟢 Skills You Have That Employers Want")
+        if gap_result["covered"]:
+            covered_df = pd.DataFrame(gap_result["covered"][:10])
+            fig2 = px.bar(
+                covered_df,
+                x="frequency_pct",
+                y="skill",
+                orientation="h",
+                labels={"frequency_pct": "% of job postings", "skill": ""},
+                color="frequency_pct",
+                color_continuous_scale=["#D1FAE5", "#16A34A"],
+            )
+            fig2.update_layout(
+                height=350,
+                margin=dict(l=0, r=0, t=10, b=10),
+                showlegend=False,
+                coloraxis_showscale=False,
+                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="rgba(0,0,0,0)",
+            )
+            fig2.update_xaxes(showgrid=True, gridcolor="#E2E8F0")
+            fig2.update_yaxes(showgrid=False)
+            st.plotly_chart(fig2, use_container_width=True)
