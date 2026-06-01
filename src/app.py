@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.modules.matcher import match_jobs
 from src.indexing.vector_store import build_index, get_collection
 from src.modules.gap_analysis import run_gap_analysis
+from src.modules.app_assistant import rewrite_resume_bullets, generate_cover_letter
 
 
 # ── Page config ──────────────────────────────────────────────────────────────
@@ -270,3 +271,57 @@ else:
             fig2.update_xaxes(showgrid=True, gridcolor="#E2E8F0")
             fig2.update_yaxes(showgrid=False)
             st.plotly_chart(fig2, use_container_width=True)
+            # ── Application Assistant ──
+        st.markdown("---")
+        st.markdown('<p class="section-title">✍️ Application Assistant</p>',
+                    unsafe_allow_html=True)
+        st.markdown("Select a job from your matches to get tailored resume bullets and a cover letter.")
+
+        if matches:
+            job_options = {
+                f"#{i+1} {m['title']} @ {m['company']}": m
+                for i, m in enumerate(matches)
+            }
+            selected_label = st.selectbox("Choose a job posting", list(job_options.keys()))
+            selected_job = job_options[selected_label]
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                if st.button("✍️ Rewrite My Resume Bullets", use_container_width=True):
+                    with st.spinner("Rewriting bullets for this role..."):
+                        rewritten = rewrite_resume_bullets(
+                            resume_experience=profile["experience"],
+                            job_title=selected_job["title"],
+                            job_description=selected_job["snippet"],
+                            candidate_skills=profile["skills"],
+                        )
+                    st.markdown("**Rewritten Bullets:**")
+                    for b in rewritten:
+                        st.markdown(f"• {b}")
+                    st.download_button(
+                        "📋 Copy as text",
+                        data="\n".join([f"• {b}" for b in rewritten]),
+                        file_name="rewritten_bullets.txt",
+                    )
+
+            with col2:
+                if st.button("📝 Generate Cover Letter", use_container_width=True):
+                    with st.spinner("Generating cover letter..."):
+                        letter = generate_cover_letter(
+                            candidate_name=profile["name"],
+                            candidate_email=profile["email"],
+                            candidate_skills=profile["skills"],
+                            candidate_experience=profile["experience"],
+                            candidate_education=profile["education"],
+                            job_title=selected_job["title"],
+                            company=selected_job["company"],
+                            job_description=selected_job["snippet"],
+                        )
+                    st.markdown("**Cover Letter:**")
+                    st.markdown(letter)
+                    st.download_button(
+                        "📋 Download cover letter",
+                        data=letter,
+                        file_name="cover_letter.txt",
+                    )
