@@ -1,3 +1,12 @@
+---
+title: CareerLens
+emoji: 🔍
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # CareerLens 🔍
 > AI-powered job search co-pilot — semantic job matching, skill gap analysis, and LLM-powered application assistance
 
