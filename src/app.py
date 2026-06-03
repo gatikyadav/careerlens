@@ -2,6 +2,8 @@ import streamlit as st
 import sys
 import os
 import tempfile
+import pandas as pd
+import plotly.express as px
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -204,10 +206,9 @@ else:
                     unsafe_allow_html=True)
 
         with st.spinner("Analyzing skill gaps across job postings..."):
-            matched_ids = [m["id"] for m in matches]
             gap_result = run_gap_analysis(
                 resume_skills=profile["skills"],
-                job_ids=matched_ids if matched_ids else None,
+                job_ids=None,
                 top_n=15,
             )
 
@@ -222,8 +223,6 @@ else:
 
         st.markdown("#### 🔴 Skills You're Missing")
         if gap_result["gaps"]:
-            import plotly.express as px
-            import pandas as pd
 
             gap_df = pd.DataFrame(gap_result["gaps"][:10])
             fig = px.bar(
@@ -294,7 +293,7 @@ else:
                         rewritten = rewrite_resume_bullets(
                             resume_experience=profile["experience"],
                             job_title=selected_job["title"],
-                            job_description=selected_job["snippet"],
+                            job_description=selected_job.get("description", selected_job["snippet"]),
                             candidate_skills=profile["skills"],
                         )
                     st.markdown("**Rewritten Bullets:**")
@@ -317,7 +316,7 @@ else:
                             candidate_education=profile["education"],
                             job_title=selected_job["title"],
                             company=selected_job["company"],
-                            job_description=selected_job["snippet"],
+                            job_description=selected_job.get("description", selected_job["snippet"]),
                         )
                     st.markdown("**Cover Letter:**")
                     st.markdown(letter)

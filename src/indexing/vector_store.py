@@ -1,7 +1,9 @@
 import chromadb
 import os
+import sqlite3
 from sentence_transformers import SentenceTransformer
 from src.ingestion.adzuna import get_all_jobs
+from src.ingestion.adzuna import DB_PATH
 
 CHROMA_PATH = "chroma_db"
 COLLECTION_NAME = "job_postings"
@@ -101,7 +103,7 @@ def build_index():
 def search_jobs(query_text: str, n_results: int = 10) -> list[dict]:
     """
     Search for jobs similar to a query string.
-    Returns a list of matches with metadata and similarity score.
+    Returns a list of matches with metadata, similarity score, and full description.
     """
     collection = get_collection()
 
@@ -117,17 +119,30 @@ def search_jobs(query_text: str, n_results: int = 10) -> list[dict]:
         include=["metadatas", "distances", "documents"],
     )
 
+    # Fetch full descriptions from SQLite
+    ids = results["ids"][0]
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    placeholders = ",".join("?" * len(ids))
+    cursor.execute(f"SELECT id, description FROM jobs WHERE id IN ({placeholders})", ids)
+    desc_map = {row["id"]: row["description"] for row in cursor.fetchall()}
+    conn.close()
+
     matches = []
-    for i in range(len(results["ids"][0])):
+    for i in range(len(ids)):
+        job_id = ids[i]
+        full_desc = desc_map.get(job_id, "")
         match = {
-            "id": results["ids"][0][i],
-            "score": round(1 - results["distances"][0][i], 3),  # cosine similarity
+            "id": job_id,
+            "score": round(1 - results["distances"][0][i], 3),
             "title": results["metadatas"][0][i]["title"],
             "company": results["metadatas"][0][i]["company"],
             "location": results["metadatas"][0][i]["location"],
             "url": results["metadatas"][0][i]["url"],
             "query": results["metadatas"][0][i]["query"],
-            "snippet": results["documents"][0][i][:200],
+            "snippet": full_desc[:200],
+            "description": full_desc,
         }
         matches.append(match)
 

@@ -14,14 +14,32 @@ DB_PATH = "data/jobs.db"
 BASE_URL = "https://api.adzuna.com/v1/api/jobs/us/search"
 
 SEARCH_QUERIES = [
+    # ML / AI
     "machine learning engineer",
-    "software engineer",
-    "data scientist",
     "AI engineer",
+    "NLP engineer",
+    "deep learning engineer",
+    "MLOps engineer",
+    "computer vision engineer",
+    "LLM engineer",
+    "data scientist",
+    "applied scientist",
+    # SWE
+    "software engineer",
     "backend engineer",
+    "full stack engineer",
+    "python developer",
+    "java developer",
+    # Quant / Fintech
     "quantitative analyst",
+    "quantitative researcher",
+    "quantitative developer",
+    "algorithmic trading engineer",
+    "risk analyst",
+    # Data
+    "data engineer",
+    "analytics engineer",
 ]
-
 
 def init_db():
     """Create the jobs table if it doesn't exist."""
@@ -126,7 +144,7 @@ def run_pipeline(queries: list[str] = None):
 
     for query in queries:
         print(f"\nFetching: '{query}'...")
-        jobs = fetch_jobs(query, results_per_page=20)
+        jobs = fetch_jobs(query, results_per_page=50)
         if jobs:
             saved = save_jobs(jobs, query)
             total_saved += saved

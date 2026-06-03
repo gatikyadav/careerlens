@@ -9,19 +9,28 @@ def build_resume_query(profile: dict) -> str:
     """
     parts = []
 
-    # Add skills (top 15 most relevant)
-    if profile.get("skills"):
-        skills_str = ", ".join(profile["skills"][:15])
-        parts.append(f"Skills: {skills_str}")
+    # Lead with target role intent based on strongest signals
+    ml_skills = {"machine learning", "tensorflow", "keras", "pytorch",
+                 "llm", "rag", "openai", "artificial intelligence",
+                 "convolutional neural network", "deep learning"}
+    has_ml = any(s in ml_skills for s in profile.get("skills", []))
+
+    if has_ml:
+        parts.append("Machine Learning Engineer AI Python")
+
+    # Add top ML/AI skills only — exclude generic ones like java, c, html
+    noise_skills = {"c", "html", "css", "mips", "flutter", "android studio",
+                    "fusion 360", "scala", "go", "matlab", "r", "javascript"}
+    clean_skills = [s for s in profile.get("skills", [])
+                    if s not in noise_skills][:10]
+
+    if clean_skills:
+        parts.append(", ".join(clean_skills))
 
     # Add experience lines
     if profile.get("experience"):
-        exp_str = " | ".join(profile["experience"][:3])
+        exp_str = " | ".join(profile["experience"][:2])
         parts.append(f"Experience: {exp_str}")
-
-    # Add education
-    if profile.get("education"):
-        parts.append(f"Education: {profile['education'][0]}")
 
     return ". ".join(parts)
 
