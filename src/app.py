@@ -83,6 +83,9 @@ with st.sidebar:
         type=["pdf"],
         help="Your resume is parsed locally and never stored"
     )
+    if uploaded_file:
+        if st.button("🔄 Clear & Start Over", use_container_width=True):
+            st.rerun()
 
     st.markdown("### Filters")
     role_filter = st.text_input(
@@ -104,6 +107,16 @@ with st.sidebar:
         collection = get_collection()
         job_count = collection.count()
         st.markdown(f"**Jobs in index:** {job_count}")
+        # Last updated timestamp from SQLite
+        import sqlite3
+        from src.ingestion.adzuna import DB_PATH
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT MAX(fetched_at) FROM jobs")
+        last_updated = cursor.fetchone()[0]
+        conn.close()
+        if last_updated:
+            st.markdown(f"**Last updated:** {last_updated[:10]}")
     except Exception:
         st.markdown("**Jobs in index:** —")
 
@@ -190,6 +203,14 @@ else:
                         st.markdown(f"**#{i} {job['title']}**")
                         st.markdown(f"🏢 {job['company']}  &nbsp; 📍 {job['location']}")
                         st.markdown(f"_{job['snippet'][:180]}..._")
+                        # Salary display
+                        salary_parts = []
+                        if job.get("salary_min") and str(job.get("salary_min")) != "None":
+                            salary_parts.append(f"${int(float(job['salary_min'])):,}")
+                        if job.get("salary_max") and str(job.get("salary_max")) != "None":
+                            salary_parts.append(f"${int(float(job['salary_max'])):,}")
+                        if salary_parts:
+                            st.markdown(f"💰 {' – '.join(salary_parts)}/yr")
                         st.markdown(f"[View Job →]({job['url']})")
                     with col2:
                         st.markdown(
@@ -279,11 +300,19 @@ else:
 
         if matches:
             job_options = {
-                f"#{i+1} {m['title']} @ {m['company']}": m
+                f"#{i+1} {m['title']} @ {m['company']} — {m['location'][:30]}": m
                 for i, m in enumerate(matches)
             }
             selected_label = st.selectbox("Choose a job posting", list(job_options.keys()))
             selected_job = job_options[selected_label]
+
+            # Show full job details before generating
+            with st.expander("📋 View full job description", expanded=False):
+                st.markdown(f"**{selected_job['title']}** at **{selected_job['company']}**")
+                st.markdown(f"📍 {selected_job['location']}")
+                full_desc = selected_job.get('description', selected_job['snippet'])
+                st.markdown(full_desc[:2000] if full_desc else selected_job['snippet'])
+                st.markdown(f"[View original posting →]({selected_job['url']})")
 
             col1, col2 = st.columns(2)
 

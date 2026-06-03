@@ -141,6 +141,8 @@ def search_jobs(query_text: str, n_results: int = 10) -> list[dict]:
             "location": results["metadatas"][0][i]["location"],
             "url": results["metadatas"][0][i]["url"],
             "query": results["metadatas"][0][i]["query"],
+            "salary_min": results["metadatas"][0][i].get("salary_min", ""),
+            "salary_max": results["metadatas"][0][i].get("salary_max", ""),
             "snippet": full_desc[:200],
             "description": full_desc,
         }

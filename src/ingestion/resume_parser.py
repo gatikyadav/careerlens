@@ -5,26 +5,24 @@ import json
 
 SKILL_KEYWORDS = [
     # Languages
-    "python", "java", "c++", "c", "javascript", "typescript", "r", "sql",
-    "html", "css", "matlab", "scala", "go", "rust", "swift", "kotlin",
-    "mips", "flutter",
+    "python", "java", "c++", "javascript", "typescript", "sql",
+    "html", "css", "matlab", "scala", "kotlin", "swift",
     # ML / AI
     "machine learning", "deep learning", "nlp", "computer vision",
     "tensorflow", "keras", "pytorch", "scikit-learn", "xgboost",
     "langchain", "rag", "llm", "openai", "huggingface", "transformers",
     "artificial intelligence", "retrieval augmented generation",
-    "convolutional neural network", "cnn",
+    "convolutional neural network", "reinforcement learning",
     # Data
     "pandas", "numpy", "matplotlib", "plotly", "spark", "hadoop",
-    "tableau", "power bi", "pdfplumber",
+    "tableau", "power bi",
     # Backend / Infra
     "fastapi", "flask", "django", "springboot", "nodejs",
     "docker", "kubernetes", "aws", "gcp", "azure", "git",
     "postgresql", "mysql", "mongodb", "redis", "sqlite",
-    "android studio", "fusion 360",
     # Other
     "streamlit", "rest api", "graphql", "ci/cd", "linux",
-    "ocr", "prompt engineering",
+    "prompt engineering", "ocr",
 ]
 
 # Lines that are clearly bullet content, not titles
