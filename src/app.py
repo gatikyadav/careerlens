@@ -9,6 +9,7 @@ from src.modules.matcher import match_jobs
 from src.indexing.vector_store import build_index, get_collection
 from src.modules.gap_analysis import run_gap_analysis
 from src.modules.app_assistant import rewrite_resume_bullets, generate_cover_letter
+from src.modules.warm_path import find_warm_paths
 
 
 # ── Page config ──────────────────────────────────────────────────────────────
@@ -325,3 +326,42 @@ else:
                         data=letter,
                         file_name="cover_letter.txt",
                     )
+        
+        # ── Warm Path Finder ──
+        st.markdown("---")
+        st.markdown('<p class="section-title">🤝 Warm Path Finder</p>',
+                    unsafe_allow_html=True)
+        st.markdown("Postings with network overlap — shared city, past companies, or tech stack alignment.")
+
+        with st.spinner("Scanning for warm paths..."):
+            warm_results = find_warm_paths(
+                resume_text=profile.get("raw_text", ""),
+                education=profile["education"],
+                experience=profile["experience"],
+                matches=matches,
+                min_score=1,
+            )
+
+        if not warm_results:
+            st.info("No strong warm path signals found in current matches. Try expanding your result count.")
+        else:
+            st.success(f"Found {len(warm_results)} postings with network signals")
+            for r in warm_results:
+                with st.container():
+                    col1, col2 = st.columns([5, 1])
+                    with col1:
+                        st.markdown(f"**{r['title']}** @ {r['company']}")
+                        st.markdown(f"📍 {r['location']}")
+                        for signal in r["signals"]:
+                            st.markdown(f"&nbsp;&nbsp;{signal}")
+                        st.markdown(f"[View Job →]({r['url']})")
+                    with col2:
+                        st.markdown(
+                            f"<div style='text-align:center; padding-top:10px;'>"
+                            f"<span style='font-size:1.5rem; font-weight:800; color:#7C3AED'>"
+                            f"{r['warm_score']}</span><br>"
+                            f"<span style='font-size:0.75rem; color:#64748B'>warm score</span>"
+                            f"</div>",
+                            unsafe_allow_html=True
+                        )
+                    st.markdown("---")
