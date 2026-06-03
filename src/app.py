@@ -338,6 +338,8 @@ else:
                 education=profile["education"],
                 experience=profile["experience"],
                 matches=matches,
+                resume_skills=profile["skills"],
+                candidate_level="entry",
                 min_score=1,
             )
 
