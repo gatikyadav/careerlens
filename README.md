@@ -30,7 +30,7 @@ CareerLens takes your resume PDF and puts it to work. Upload once and get four t
 
 ## Demo
 
-![CareerLens Demo](assets/demo.gif)
+![CareerLens Demo](https://raw.githubusercontent.com/gatikyadav/careerlens/main/assets/demo.gif)
 
 ---
 
